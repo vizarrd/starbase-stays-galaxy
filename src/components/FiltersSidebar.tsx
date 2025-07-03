@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { X, Filter, Settings } from 'lucide-react';
-import { amenitiesList, roomTypes } from '@/data/rooms';
+import { getAllAmenities } from '@/lib/supabase-rooms';
 
 export interface FilterState {
   priceMin: string;
@@ -24,6 +24,13 @@ interface FiltersSidebarProps {
   onClearFilters: () => void;
 }
 
+const roomTypes = [
+  { value: 'all', label: 'All Types' },
+  { value: 'hotel', label: 'Hotel' },
+  { value: 'apartment', label: 'Apartment' },
+  { value: 'suite', label: 'Suite' }
+];
+
 const FiltersSidebar = ({ 
   isOpen, 
   onClose, 
@@ -32,6 +39,24 @@ const FiltersSidebar = ({
   onApplyFilters,
   onClearFilters 
 }: FiltersSidebarProps) => {
+  const [availableAmenities, setAvailableAmenities] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadAmenities = async () => {
+      try {
+        const amenities = await getAllAmenities();
+        setAvailableAmenities(amenities);
+      } catch (error) {
+        console.error('Error loading amenities:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadAmenities();
+  }, []);
+
   const handleAmenityChange = (amenity: string, checked: boolean) => {
     const newAmenities = checked 
       ? [...filters.amenities, amenity]
@@ -156,26 +181,34 @@ const FiltersSidebar = ({
               <Label className="text-sm font-exo font-semibold text-foreground">
                 Force Amenities
               </Label>
-              <div className="space-y-2 max-h-48 overflow-y-auto">
-                {amenitiesList.map((amenity) => (
-                  <div key={amenity} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={amenity}
-                      checked={filters.amenities.includes(amenity)}
-                      onCheckedChange={(checked) => 
-                        handleAmenityChange(amenity, checked as boolean)
-                      }
-                      className="border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                    />
-                    <Label 
-                      htmlFor={amenity} 
-                      className="text-sm font-exo text-foreground cursor-pointer hover:text-primary transition-colors"
-                    >
-                      {amenity}
-                    </Label>
-                  </div>
-                ))}
-              </div>
+              {loading ? (
+                <div className="space-y-2">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="h-6 bg-muted animate-pulse rounded" />
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {availableAmenities.map((amenity) => (
+                    <div key={amenity} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={amenity}
+                        checked={filters.amenities.includes(amenity)}
+                        onCheckedChange={(checked) => 
+                          handleAmenityChange(amenity, checked as boolean)
+                        }
+                        className="border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                      />
+                      <Label 
+                        htmlFor={amenity} 
+                        className="text-sm font-exo text-foreground cursor-pointer hover:text-primary transition-colors"
+                      >
+                        {amenity}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <Separator className="bg-border" />

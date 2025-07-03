@@ -6,15 +6,17 @@ import SearchBar, { SearchFilters } from '@/components/SearchBar';
 import RoomCard from '@/components/RoomCard';
 import FiltersSidebar, { FilterState } from '@/components/FiltersSidebar';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import SoundToggle from '@/components/SoundToggle';
-import { dummyRooms, Room } from '@/data/rooms';
+import { fetchRooms, Room, RoomFilters } from '@/lib/supabase-rooms';
 import { useToast } from '@/hooks/use-toast';
 
 const Browse = () => {
-  const [rooms, setRooms] = useState<Room[]>(dummyRooms);
-  const [filteredRooms, setFilteredRooms] = useState<Room[]>(dummyRooms);
-  const [isLoading, setIsLoading] = useState(false);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    return localStorage.getItem('starbase-sound-enabled') === 'true';
+  });
   const { toast } = useToast();
   
   const [filters, setFilters] = useState<FilterState>({
@@ -24,64 +26,80 @@ const Browse = () => {
     roomType: 'all'
   });
 
-  const { SoundToggleButton, playLightsaberSound, soundEnabled } = SoundToggle();
-
-  // Apply filters to rooms
+  // Load initial rooms
   useEffect(() => {
-    let filtered = [...rooms];
+    const loadRooms = async () => {
+      try {
+        setIsLoading(true);
+        const roomsData = await fetchRooms();
+        setRooms(roomsData);
+      } catch (error) {
+        console.error('Error loading rooms:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load accommodations. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-    // Price filter
-    if (filters.priceMin) {
-      filtered = filtered.filter(room => room.price >= parseInt(filters.priceMin));
-    }
-    if (filters.priceMax) {
-      filtered = filtered.filter(room => room.price <= parseInt(filters.priceMax));
-    }
+    loadRooms();
+  }, [toast]);
 
-    // Room type filter
-    if (filters.roomType && filters.roomType !== 'all') {
-      filtered = filtered.filter(room => room.type === filters.roomType);
+  const playLightsaberSound = () => {
+    if (!soundEnabled) return;
+    
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(880, audioContext.currentTime + 0.1);
+      oscillator.frequency.exponentialRampToValueAtTime(220, audioContext.currentTime + 0.3);
+      
+      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+    } catch (error) {
+      console.log('Audio not supported');
     }
-
-    // Amenities filter
-    if (filters.amenities.length > 0) {
-      filtered = filtered.filter(room => 
-        filters.amenities.every(amenity => room.amenities.includes(amenity))
-      );
-    }
-
-    setFilteredRooms(filtered);
-  }, [filters, rooms]);
+  };
 
   const handleSearch = async (searchFilters: SearchFilters) => {
-    setIsLoading(true);
+    setIsSearching(true);
     
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Filter rooms based on search criteria
-    let searchResults = [...dummyRooms];
-    
-    if (searchFilters.city) {
-      searchResults = searchResults.filter(room => 
-        room.location.toLowerCase().includes(searchFilters.city.toLowerCase()) ||
-        room.name.toLowerCase().includes(searchFilters.city.toLowerCase())
-      );
-    }
-    
-    if (searchFilters.guests) {
-      const guestCount = parseInt(searchFilters.guests);
-      searchResults = searchResults.filter(room => room.maxGuests >= guestCount);
-    }
+    try {
+      const roomFilters: RoomFilters = {
+        location: searchFilters.city,
+        maxGuests: searchFilters.guests ? parseInt(searchFilters.guests) : undefined,
+      };
 
-    setRooms(searchResults);
-    setIsLoading(false);
+      const searchResults = await fetchRooms(roomFilters);
+      setRooms(searchResults);
 
-    toast({
-      title: "Search Complete",
-      description: `Found ${searchResults.length} accommodations matching your criteria`,
-      duration: 3000,
-    });
+      toast({
+        title: "Search Complete",
+        description: `Found ${searchResults.length} accommodations matching your criteria`,
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error('Error searching rooms:', error);
+      toast({
+        title: "Search Error",
+        description: "Failed to search accommodations. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   const handleBookRoom = (roomId: string) => {
@@ -89,24 +107,47 @@ const Browse = () => {
     if (room) {
       toast({
         title: "Booking Initiated",
-        description: `Preparing to book ${room.name}. Supabase integration required for full booking system.`,
+        description: `Preparing to book ${room.name}. Authentication required for full booking system.`,
         duration: 4000,
       });
     }
   };
 
-  const handleApplyFilters = () => {
+  const handleApplyFilters = async () => {
     setIsFiltersOpen(false);
     if (soundEnabled) playLightsaberSound();
     
-    toast({
-      title: "Filters Applied",
-      description: `Found ${filteredRooms.length} matching accommodations`,
-      duration: 2000,
-    });
+    try {
+      setIsLoading(true);
+      
+      const roomFilters: RoomFilters = {
+        minPrice: filters.priceMin ? parseFloat(filters.priceMin) : undefined,
+        maxPrice: filters.priceMax ? parseFloat(filters.priceMax) : undefined,
+        amenities: filters.amenities.length > 0 ? filters.amenities : undefined,
+        roomType: filters.roomType !== 'all' ? filters.roomType : undefined,
+      };
+
+      const filteredRooms = await fetchRooms(roomFilters);
+      setRooms(filteredRooms);
+      
+      toast({
+        title: "Filters Applied",
+        description: `Found ${filteredRooms.length} matching accommodations`,
+        duration: 2000,
+      });
+    } catch (error) {
+      console.error('Error applying filters:', error);
+      toast({
+        title: "Filter Error",
+        description: "Failed to apply filters. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleClearFilters = () => {
+  const handleClearFilters = async () => {
     setFilters({
       priceMin: '',
       priceMax: '',
@@ -114,11 +155,21 @@ const Browse = () => {
       roomType: 'all'
     });
     
-    toast({
-      title: "Filters Cleared",
-      description: "All filters have been reset",
-      duration: 2000,
-    });
+    try {
+      setIsLoading(true);
+      const allRooms = await fetchRooms();
+      setRooms(allRooms);
+      
+      toast({
+        title: "Filters Cleared",
+        description: "All filters have been reset",
+        duration: 2000,
+      });
+    } catch (error) {
+      console.error('Error clearing filters:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -139,7 +190,7 @@ const Browse = () => {
             </p>
           </div>
           
-          <SearchBar onSearch={handleSearch} isLoading={isLoading} />
+          <SearchBar onSearch={handleSearch} isLoading={isSearching} />
         </section>
 
         {/* Results Section */}
@@ -156,7 +207,7 @@ const Browse = () => {
 
           {/* Main Content */}
           <div className="lg:pl-0">
-            {/* Mobile Filter Button and Controls */}
+            {/* Mobile Filter Button */}
             <div className="flex items-center justify-between mb-6 lg:hidden">
               <Button
                 variant="outline"
@@ -166,12 +217,6 @@ const Browse = () => {
                 <Filter className="w-4 h-4 mr-2" />
                 Filters
               </Button>
-              {SoundToggleButton}
-            </div>
-
-            {/* Desktop Sound Toggle */}
-            <div className="hidden lg:flex justify-end mb-6">
-              {SoundToggleButton}
             </div>
 
             {/* Results Header */}
@@ -180,7 +225,7 @@ const Browse = () => {
                 Available Accommodations
               </h2>
               <span className="text-muted-foreground font-exo">
-                {filteredRooms.length} results
+                {rooms.length} results
               </span>
             </div>
 
@@ -195,9 +240,9 @@ const Browse = () => {
             {/* Results Grid */}
             {!isLoading && (
               <>
-                {filteredRooms.length > 0 ? (
+                {rooms.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {filteredRooms.map((room) => (
+                    {rooms.map((room) => (
                       <RoomCard
                         key={room.id}
                         room={room}
