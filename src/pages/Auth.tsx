@@ -8,7 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, User } from 'lucide-react';
+import { Mail, Lock, User, AlertCircle } from 'lucide-react';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -39,6 +39,15 @@ const Auth = () => {
       return;
     }
 
+    if (password.length < 6) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 6 characters long",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     const redirectUrl = `${window.location.origin}/`;
     
@@ -53,21 +62,45 @@ const Auth = () => {
     setIsLoading(false);
 
     if (error) {
+      let errorMessage = error.message;
+      
+      // Handle common signup errors
+      if (error.message.includes("User already registered")) {
+        errorMessage = "An account with this email already exists. Please sign in instead or use a different email address.";
+      } else if (error.message.includes("Invalid email")) {
+        errorMessage = "Please enter a valid email address.";
+      } else if (error.message.includes("Password should be at least")) {
+        errorMessage = "Password must be at least 6 characters long.";
+      }
+      
       toast({
-        title: "Error",
-        description: error.message,
+        title: "Sign Up Failed",
+        description: errorMessage,
         variant: "destructive",
       });
     } else {
       toast({
-        title: "Success",
-        description: "Check your email for confirmation link",
-        duration: 4000,
+        title: "Account Created Successfully!",
+        description: "Please check your email for a confirmation link to complete your registration.",
+        duration: 6000,
       });
+      // Clear form after successful signup
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
     }
   };
 
   const handleSignIn = async () => {
+    if (!email || !password) {
+      toast({
+        title: "Missing Information",
+        description: "Please enter both email and password to sign in.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     
     const { error } = await supabase.auth.signInWithPassword({
@@ -79,21 +112,33 @@ const Auth = () => {
 
     if (error) {
       let errorMessage = error.message;
+      let errorTitle = "Sign In Failed";
       
-      // Check for email not confirmed error
-      if (error.message === "Email not confirmed" || error.message.includes("email_not_confirmed")) {
-        errorMessage = "Your email address has not been confirmed. Please check your inbox (and spam folder) for a confirmation link.";
+      // Handle specific authentication errors with helpful messages
+      if (error.message === "Invalid login credentials" || error.message.includes("invalid_credentials")) {
+        errorTitle = "Invalid Credentials";
+        errorMessage = "The email or password you entered is incorrect. Please check your credentials and try again.";
+      } else if (error.message === "Email not confirmed" || error.message.includes("email_not_confirmed")) {
+        errorTitle = "Email Not Confirmed";
+        errorMessage = "Please check your email inbox (and spam folder) for a confirmation link to activate your account.";
+      } else if (error.message.includes("Invalid email")) {
+        errorTitle = "Invalid Email";
+        errorMessage = "Please enter a valid email address.";
+      } else if (error.message.includes("Too many requests")) {
+        errorTitle = "Too Many Attempts";
+        errorMessage = "Too many sign-in attempts. Please wait a few minutes before trying again.";
       }
       
       toast({
-        title: "Error",
+        title: errorTitle,
         description: errorMessage,
         variant: "destructive",
+        duration: 5000,
       });
     } else {
       toast({
         title: "Welcome back!",
-        description: "You have successfully signed in",
+        description: "You have successfully signed in to your account.",
       });
       navigate('/');
     }
@@ -113,9 +158,42 @@ const Auth = () => {
 
     if (error) {
       toast({
-        title: "Error",
-        description: error.message,
+        title: "Google Sign In Failed",
+        description: error.message || "Unable to sign in with Google. Please try again.",
         variant: "destructive",
+      });
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast({
+        title: "Email Required",
+        description: "Please enter your email address first, then click 'Forgot Password' to reset it.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth`,
+    });
+
+    setIsLoading(false);
+
+    if (error) {
+      toast({
+        title: "Password Reset Failed",
+        description: error.message || "Unable to send password reset email. Please try again.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Password Reset Email Sent",
+        description: "Check your email for instructions to reset your password.",
+        duration: 5000,
       });
     }
   };
@@ -177,6 +255,18 @@ const Auth = () => {
                   />
                 </div>
 
+                <div className="flex justify-end">
+                  <Button
+                    variant="link"
+                    size="sm"
+                    onClick={handleForgotPassword}
+                    disabled={isLoading}
+                    className="text-xs text-muted-foreground hover:text-primary p-0 h-auto font-exo"
+                  >
+                    Forgot password?
+                  </Button>
+                </div>
+
                 <Button
                   onClick={handleSignIn}
                   disabled={isLoading || !email || !password}
@@ -221,6 +311,20 @@ const Auth = () => {
                   </svg>
                   Continue with Google
                 </Button>
+
+                <div className="mt-4 p-3 bg-muted/50 rounded-md border border-border">
+                  <div className="flex items-start space-x-2">
+                    <AlertCircle className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                    <div className="text-xs text-muted-foreground font-exo">
+                      <p className="font-medium mb-1">Having trouble signing in?</p>
+                      <ul className="space-y-1 text-xs">
+                        <li>• Double-check your email and password</li>
+                        <li>• Make sure your email is confirmed</li>
+                        <li>• Use "Forgot password?" if needed</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
               </TabsContent>
 
               <TabsContent value="signup" className="space-y-4">
@@ -247,7 +351,7 @@ const Auth = () => {
                   <Input
                     id="signup-password"
                     type="password"
-                    placeholder="Create a password..."
+                    placeholder="Create a password (min. 6 characters)..."
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="bg-input border-border focus:border-primary"
@@ -313,6 +417,20 @@ const Auth = () => {
                   </svg>
                   Continue with Google
                 </Button>
+
+                <div className="mt-4 p-3 bg-muted/50 rounded-md border border-border">
+                  <div className="flex items-start space-x-2">
+                    <AlertCircle className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                    <div className="text-xs text-muted-foreground font-exo">
+                      <p className="font-medium mb-1">Account creation tips:</p>
+                      <ul className="space-y-1 text-xs">
+                        <li>• Use a valid email address</li>
+                        <li>• Password must be at least 6 characters</li>
+                        <li>• Check your email for confirmation link</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
               </TabsContent>
             </Tabs>
           </CardContent>
