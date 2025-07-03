@@ -78,9 +78,16 @@ const Auth = () => {
     setIsLoading(false);
 
     if (error) {
+      let errorMessage = error.message;
+      
+      // Check for email not confirmed error
+      if (error.message === "Email not confirmed" || error.message.includes("email_not_confirmed")) {
+        errorMessage = "Your email address has not been confirmed. Please check your inbox (and spam folder) for a confirmation link.";
+      }
+      
       toast({
         title: "Error",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
     } else {
