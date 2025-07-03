@@ -27,7 +27,7 @@ Execute the booking and payment tables migration:
 
 ```sql
 -- Run this in your Supabase SQL Editor
--- File: supabase/migrations/20250703120000_booking_payment_tables.sql
+-- File: supabase/migrations/20250103000001_add_booking_payment_tables.sql
 ```
 
 ### 2.2 Verify Tables
