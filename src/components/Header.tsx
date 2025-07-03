@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Menu, X, User, Calendar } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
   const location = useLocation();
 
   const isActive = (path: string) => location.pathname === path;
@@ -48,6 +49,7 @@ const Header = () => {
               <Button 
                 variant="outline" 
                 className="lightsaber-button-blue border-accent text-accent hover:bg-accent hover:text-accent-foreground"
+                onClick={() => navigate('/auth')}
               >
                 <User className="w-4 h-4 mr-2" />
                 Login
@@ -92,7 +94,10 @@ const Header = () => {
                 <Button 
                   variant="outline" 
                   className="lightsaber-button-blue border-accent text-accent hover:bg-accent hover:text-accent-foreground w-fit"
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    navigate('/auth');
+                  }}
                 >
                   <User className="w-4 h-4 mr-2" />
                   Login

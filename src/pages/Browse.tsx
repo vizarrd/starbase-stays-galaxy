@@ -64,7 +64,8 @@ const Browse = () => {
     
     if (searchFilters.city) {
       searchResults = searchResults.filter(room => 
-        room.location.toLowerCase().includes(searchFilters.city.toLowerCase())
+        room.location.toLowerCase().includes(searchFilters.city.toLowerCase()) ||
+        room.name.toLowerCase().includes(searchFilters.city.toLowerCase())
       );
     }
     
