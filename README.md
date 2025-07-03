@@ -1,73 +1,198 @@
-# Welcome to your Lovable project
+# 🌟 Starbase Stays - Galactic Room Booking Platform
 
-## Project info
+A Star Wars-themed room booking web application built with modern technologies for an immersive user experience.
 
-**URL**: https://lovable.dev/projects/323f3c99-1121-41c4-9f3b-a2a7f7ebd057
+## 🚀 Features
 
-## How can I edit this code?
+- **Galactic Theme**: Dark Star Wars-inspired UI with red lightsaber accents
+- **Room Browsing**: Browse accommodations with detailed listings and photos
+- **Advanced Search**: Filter by location, dates, guests, and amenities
+- **Smart Filtering**: Price range, room type, and amenity filters
+- **Responsive Design**: Fully responsive for desktop, tablet, and mobile
+- **Sound Effects**: Optional lightsaber sound effects with toggle
+- **Accessibility**: High contrast, ARIA labels, and keyboard navigation
+- **Death Star Loading**: Custom CSS animations and loading states
 
-There are several ways of editing your application.
+## 🛠 Tech Stack
 
-**Use Lovable**
+- **Frontend**: React 18 + TypeScript + Vite
+- **Styling**: Tailwind CSS + Custom Star Wars theme
+- **UI Components**: Shadcn-UI with custom Star Wars variants
+- **Routing**: React Router DOM
+- **State Management**: React hooks
+- **Icons**: Lucide React
+- **Fonts**: Orbitron + Exo 2 (Google Fonts)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/323f3c99-1121-41c4-9f3b-a2a7f7ebd057) and start prompting.
+## 🎨 Design System
 
-Changes made via Lovable will be committed automatically to this repo.
+### Color Palette
+- **Background**: Pure black (#000000) space theme
+- **Primary**: Sith Red (#FF0000) for CTAs and highlights
+- **Accent**: Jedi Blue (#3B82F6) for secondary actions
+- **Text**: Pure white (#FFFFFF) with gray variants
+- **Cards**: Dark gray (#0A0A0A) with transparency
 
-**Use your preferred IDE**
+### Typography
+- **Display**: Orbitron (futuristic, headers)
+- **Body**: Exo 2 (readable, content)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Effects
+- **Glowing borders**: CSS box-shadow for lightsaber effects
+- **Hover animations**: Transform scale and shadow effects
+- **Loading spinner**: Death Star rotating animation
+- **Starfield background**: CSS-only animated starfield
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 📦 Installation & Setup
 
-Follow these steps:
+### Prerequisites
+- Node.js 16+ and npm
+- Modern web browser
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Local Development
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+1. **Clone and install dependencies**:
+```bash
+git clone <your-repo-url>
+cd starbase-stays
+npm install
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+2. **Start development server**:
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+3. **Open in browser**:
+Navigate to `http://localhost:8080`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Building for Production
 
-**Use GitHub Codespaces**
+```bash
+npm run build
+npm run preview
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 🗃 Project Structure
 
-## What technologies are used for this project?
+```
+src/
+├── components/          # Reusable UI components
+│   ├── ui/             # Shadcn UI components
+│   ├── Header.tsx      # Navigation header
+│   ├── SearchBar.tsx   # Galactic search console
+│   ├── RoomCard.tsx    # Room listing cards
+│   ├── FiltersSidebar.tsx # Jedi controls sidebar
+│   ├── LoadingSpinner.tsx # Death Star loader
+│   └── SoundToggle.tsx # Sound effects toggle
+├── data/
+│   └── rooms.ts        # Mock room data and types
+├── pages/
+│   ├── Browse.tsx      # Main room browsing page
+│   ├── Bookings.tsx    # User bookings page
+│   └── NotFound.tsx    # 404 error page
+├── hooks/
+│   └── use-toast.ts    # Toast notifications
+├── lib/
+│   └── utils.ts        # Utility functions
+└── index.css           # Global styles and design system
+```
 
-This project is built with:
+## 🔧 Configuration
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Environment Variables
+Currently no environment variables required for frontend-only version.
 
-## How can I deploy this project?
+### Supabase Integration (Recommended)
+For full functionality including authentication and data persistence:
 
-Simply open [Lovable](https://lovable.dev/projects/323f3c99-1121-41c4-9f3b-a2a7f7ebd057) and click on Share -> Publish.
+1. **Create Supabase project**: [supabase.com](https://supabase.com)
+2. **Connect in Lovable**: Click the green Supabase button in Lovable interface
+3. **Set up database tables**:
+   - `rooms` - Room listings
+   - `bookings` - User bookings
+   - `users` - User profiles
 
-## Can I connect a custom domain to my Lovable project?
+## 🚀 Deployment
 
-Yes, you can!
+### Vercel (Recommended)
+1. Connect your GitHub repository to Vercel
+2. Deploy automatically on push to main branch
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### Netlify
+1. Build command: `npm run build`
+2. Publish directory: `dist`
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+### Manual Deployment
+1. Run `npm run build`
+2. Upload `dist/` folder to your web server
+
+## 🎮 Features Guide
+
+### Sound Effects
+- Toggle sound on/off with speaker icon
+- Lightsaber sound on button clicks
+- Preference saved in localStorage
+
+### Search & Filtering
+- **Location search**: Type city names to filter
+- **Date selection**: Check-in/out date picker
+- **Guest count**: Select number of travelers
+- **Price range**: Min/max price filters
+- **Amenities**: Multi-select amenity filtering
+- **Room type**: Hotel, apartment, or suite
+
+### Responsive Design
+- **Desktop**: Full sidebar with grid layout
+- **Tablet**: Collapsible sidebar with responsive grid
+- **Mobile**: Bottom sheet filters with single column
+
+## 🔮 Future Enhancements
+
+### Phase 2 Features
+- [ ] User authentication (Supabase Auth)
+- [ ] Real booking system with payments
+- [ ] User reviews and ratings
+- [ ] Admin dashboard for room management
+- [ ] Email notifications
+- [ ] Calendar integration
+- [ ] Advanced search with maps
+
+### Technical Improvements
+- [ ] Progressive Web App (PWA)
+- [ ] Image optimization and lazy loading
+- [ ] Internationalization (i18n)
+- [ ] Performance monitoring
+- [ ] Unit and integration tests
+
+## 🎯 Accessibility
+
+- **Keyboard navigation**: Full keyboard support
+- **Screen readers**: ARIA labels and semantic HTML
+- **High contrast**: Color combinations meet WCAG standards
+- **Focus indicators**: Visible focus states
+- **Alt text**: Descriptive image alt text
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
+
+## 📄 License
+
+This project is for educational purposes. Star Wars theme elements are inspired by but not copied from copyrighted material.
+
+## 🙏 Credits
+
+- **UI Framework**: [Shadcn-UI](https://ui.shadcn.com/)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Images**: [Unsplash](https://unsplash.com/)
+- **Fonts**: [Google Fonts](https://fonts.google.com/)
+
+---
+
+**May the Force be with your bookings! 🌟**
+
+Built with ❤️ using Lovable and the power of the Force.
