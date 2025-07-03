@@ -8,40 +8,40 @@ All colors MUST be HSL for consistency and theming.
 
 @layer base {
   :root {
-    /* Star Wars Dark Theme - Default */
-    --background: 0 0% 0%; /* Pure black space background */
-    --foreground: 0 0% 100%; /* Pure white text */
+    /* Enhanced Star Wars Dark Theme */
+    --background: 220 27% 4%; /* Deep space blue-black */
+    --foreground: 210 40% 98%; /* Bright white text */
 
-    --card: 0 0% 3%; /* Very dark gray for cards */
-    --card-foreground: 0 0% 100%;
+    --card: 220 23% 7%; /* Rich dark blue-gray for cards */
+    --card-foreground: 210 40% 98%;
 
-    --popover: 0 0% 5%;
-    --popover-foreground: 0 0% 100%;
+    --popover: 220 27% 6%;
+    --popover-foreground: 210 40% 98%;
 
-    /* Primary = Sith Red */
-    --primary: 0 100% 50%; /* Pure red #FF0000 */
+    /* Primary = Enhanced Sith Red */
+    --primary: 0 84% 55%; /* Vibrant red */
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 0 100% 60%; /* Lighter red for glows */
+    --primary-glow: 0 90% 65%; /* Brighter red for glows */
 
-    /* Secondary = Imperial Gray */
-    --secondary: 0 0% 15%; /* Dark gray */
-    --secondary-foreground: 0 0% 90%;
+    /* Secondary = Enhanced Imperial Gray */
+    --secondary: 217 32% 17%; /* Rich dark blue-gray */
+    --secondary-foreground: 210 40% 95%;
 
-    /* Muted = Subtle grays */
-    --muted: 0 0% 8%;
-    --muted-foreground: 0 0% 60%;
+    /* Muted = Enhanced subtle tones */
+    --muted: 217 32% 12%;
+    --muted-foreground: 215 20% 65%;
 
-    /* Accent = Electric Blue (Jedi lightsaber) */
-    --accent: 210 100% 50%; /* Blue accent */
+    /* Accent = Enhanced Electric Blue */
+    --accent: 217 76% 48%; /* Vivid blue accent */
     --accent-foreground: 0 0% 100%;
-    --accent-glow: 210 100% 70%;
+    --accent-glow: 217 91% 60%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 20%; /* Subtle borders */
-    --input: 0 0% 10%; /* Dark input backgrounds */
-    --ring: 0 100% 50%; /* Red focus rings */
+    --border: 217 32% 20%; /* Enhanced borders with blue tint */
+    --input: 217 32% 9%; /* Rich dark input backgrounds */
+    --ring: 0 84% 55%; /* Enhanced red focus rings */
 
     --radius: 0.75rem; /* More rounded for futuristic feel */
     
@@ -51,14 +51,16 @@ All colors MUST be HSL for consistency and theming.
     --jedi-blue: 210 100% 50%;
     --sith-red: 0 100% 50%;
     
-    /* Gradients for galactic backgrounds */
-    --gradient-space: linear-gradient(135deg, hsl(0 0% 0%), hsl(240 20% 5%));
-    --gradient-lightsaber-red: linear-gradient(90deg, hsl(0 100% 50%), hsl(0 100% 70%));
-    --gradient-lightsaber-blue: linear-gradient(90deg, hsl(210 100% 50%), hsl(210 100% 70%));
+    /* Enhanced gradients for galactic backgrounds */
+    --gradient-space: linear-gradient(135deg, hsl(220 27% 4%), hsl(240 30% 8%), hsl(220 40% 3%));
+    --gradient-card: linear-gradient(145deg, hsl(220 23% 7%), hsl(217 32% 9%));
+    --gradient-lightsaber-red: linear-gradient(90deg, hsl(0 84% 55%), hsl(0 90% 65%));
+    --gradient-lightsaber-blue: linear-gradient(90deg, hsl(217 76% 48%), hsl(217 91% 60%));
     
-    /* Glow effects */
-    --glow-red: 0 0 20px hsl(0 100% 50% / 0.5), 0 0 40px hsl(0 100% 50% / 0.3);
-    --glow-blue: 0 0 20px hsl(210 100% 50% / 0.5), 0 0 40px hsl(210 100% 50% / 0.3);
+    /* Enhanced glow effects */
+    --glow-red: 0 0 25px hsl(0 84% 55% / 0.6), 0 0 50px hsl(0 84% 55% / 0.4), 0 0 75px hsl(0 84% 55% / 0.2);
+    --glow-blue: 0 0 25px hsl(217 76% 48% / 0.6), 0 0 50px hsl(217 76% 48% / 0.4), 0 0 75px hsl(217 76% 48% / 0.2);
+    --glow-accent: 0 0 15px hsl(var(--accent) / 0.5), 0 0 30px hsl(var(--accent) / 0.3);
     
     /* Animation timings */
     --transition-fast: 0.2s ease;
