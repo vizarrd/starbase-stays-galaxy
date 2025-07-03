@@ -15,11 +15,14 @@ import {
   Car,
   Utensils,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  CreditCard
 } from 'lucide-react';
 import Header from '@/components/Header';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { fetchRoomById, Room } from '@/lib/supabase-rooms';
+import { createCheckoutSession } from '@/lib/stripe';
+import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -27,10 +30,12 @@ import { cn } from '@/lib/utils';
 const RoomDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { toast } = useToast();
   
   const [room, setRoom] = useState<Room | null>(null);
   const [loading, setLoading] = useState(true);
+  const [bookingLoading, setBookingLoading] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [checkIn, setCheckIn] = useState<Date>();
   const [checkOut, setCheckOut] = useState<Date>();
@@ -115,14 +120,60 @@ const RoomDetails = () => {
     return null;
   };
 
-  const handleBookNow = () => {
+  const calculateNights = () => {
+    if (!checkIn || !checkOut) return 0;
+    return Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
+  };
+
+  const calculateTotal = () => {
+    if (!room || !checkIn || !checkOut) return 0;
+    return room.price_per_night * calculateNights();
+  };
+
+  const handleBookNow = async () => {
     if (soundEnabled) playLightsaberSound();
     
-    toast({
-      title: "Booking Initiated",
-      description: `Preparing to book ${room?.name}. Authentication required for full booking system.`,
-      duration: 4000,
-    });
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to book this accommodation.",
+        variant: "destructive",
+      });
+      navigate('/auth');
+      return;
+    }
+
+    if (!checkIn || !checkOut) {
+      toast({
+        title: "Dates Required",
+        description: "Please select check-in and check-out dates.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!room) return;
+
+    try {
+      setBookingLoading(true);
+      
+      await createCheckoutSession({
+        room_id: room.id,
+        check_in: format(checkIn, 'yyyy-MM-dd'),
+        check_out: format(checkOut, 'yyyy-MM-dd'),
+        total_price: calculateTotal(),
+      });
+
+    } catch (error) {
+      console.error('Error creating booking:', error);
+      toast({
+        title: "Booking Failed",
+        description: "Failed to initiate booking. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setBookingLoading(false);
+    }
   };
 
   const nextImage = () => {
@@ -175,6 +226,9 @@ const RoomDetails = () => {
   const images = room.image_urls?.length > 0 ? room.image_urls : [
     'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop'
   ];
+
+  const nights = calculateNights();
+  const totalPrice = calculateTotal();
 
   return (
     <div className="min-h-screen bg-background">
@@ -380,28 +434,39 @@ const RoomDetails = () => {
                   </div>
 
                   {/* Booking Summary */}
-                  {checkIn && checkOut && (
+                  {checkIn && checkOut && nights > 0 && (
                     <div className="border-t border-border pt-4 space-y-2">
                       <div className="flex justify-between font-exo">
-                        <span>Nights:</span>
-                        <span>{Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24))}</span>
+                        <span>${room.price_per_night} × {nights} nights</span>
+                        <span>${(room.price_per_night * nights).toFixed(2)}</span>
                       </div>
-                      <div className="flex justify-between font-exo font-semibold">
+                      <div className="flex justify-between font-exo font-semibold text-lg border-t border-border pt-2">
                         <span>Total:</span>
-                        <span>${(room.price_per_night * Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24))).toFixed(2)}</span>
+                        <span className="text-primary">${totalPrice.toFixed(2)}</span>
                       </div>
                     </div>
                   )}
 
                   <Button 
                     onClick={handleBookNow}
+                    disabled={bookingLoading || !checkIn || !checkOut || nights <= 0}
                     className="w-full lightsaber-button bg-primary hover:bg-primary/90 text-primary-foreground font-exo font-semibold text-lg py-3"
                   >
-                    Book Now
+                    {bookingLoading ? (
+                      <>
+                        <div className="death-star-loader scale-50 mr-2" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard className="w-5 h-5 mr-2" />
+                        Book Now
+                      </>
+                    )}
                   </Button>
 
                   <p className="text-xs text-muted-foreground font-exo text-center">
-                    You won't be charged yet. Authentication required for booking.
+                    Secure payment powered by Stripe. You'll be redirected to complete your booking.
                   </p>
                 </div>
               </CardContent>
